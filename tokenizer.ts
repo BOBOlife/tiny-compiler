@@ -1,4 +1,3 @@
-import { d } from 'vitest/dist/index-ea17aa0c';
 interface Token {
   type: TokenTypes
   value: string
