@@ -1,5 +1,5 @@
 import { test, expect } from 'vitest'
-import { parser } from './parser'
+import { NodeTypes, parser } from './parser'
 import { TokenTypes } from './tokenizer'
 
 test.skip('parser', () => {
@@ -58,11 +58,11 @@ test('number', () => {
   ]
 
   const ast = {
-    type: 'Program',
+    type: NodeTypes.Root,
     body: [
       {
-        type: 'Number',
-        vaue: '2'
+        type: NodeTypes.Number,
+        value: '2'
       }
     ]
   }
