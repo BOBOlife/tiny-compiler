@@ -3,16 +3,22 @@ import { Token, TokenTypes } from './tokenizer'
 
 export enum NodeTypes {
   Root,
-  Number
+  Number,
+  CallExpression
 }
 interface Node {
   type: NodeTypes
 }
+type ChildNode = NumberNode | CallExpressionNode
 interface RootNode extends Node {
-  body: NumberNode[]
+  body: ChildNode[]
 }
 interface NumberNode extends Node {
   value: string
+}
+interface CallExpressionNode extends Node {
+  name: string
+  params: ChildNode[]
 }
 
 function createRootNode(): RootNode {
@@ -28,23 +34,40 @@ function createNumberNode(value: string): NumberNode {
     value
   }
 }
+function createCallExpressionNode(name: string): CallExpressionNode {
+  return {
+    type: NodeTypes.CallExpression,
+    name,
+    params: []
+  }
+}
 
 export function parser(tokens: Token[]) {
   let current = 0
-  let token = tokens[current]
-
   const rootNode = createRootNode()
-  if (token.type === TokenTypes.Number) {
-    rootNode.body.push(createNumberNode(token.value))
+
+  function walk() {
+    let token = tokens[current]
+    if (token.type === TokenTypes.Number) {
+      current++
+      return createNumberNode(token.value)
+    }
+
+    if (token.type === TokenTypes.Paren && token.value === "(") {
+      token = tokens[++current]
+      const node: CallExpressionNode = createCallExpressionNode(token.value)
+      token = tokens[++current]
+      while (!(token.type === TokenTypes.Paren && token.value === ")")) {
+        node.params.push(walk())
+        token = tokens[current]
+      }
+      current++
+      return node
+    }
+    throw new Error(`不认识的 token: ${token}`)
+  }
+  while (current < tokens.length) {
+    rootNode.body.push(walk())
   }
   return rootNode
-  return {
-    type: NodeTypes.Root,
-    body: [
-      {
-        type: NodeTypes.Number,
-        value: "2"
-      }
-    ]
-  }
 }
